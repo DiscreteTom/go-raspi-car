@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+	"os/signal"
 	"time"
 
 	"github.com/stianeikeland/go-rpio/v4"
@@ -13,11 +16,20 @@ func main() {
 	}
 	defer rpio.Close()
 
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+
 	initCar()
 	initPS2()
 
-	for {
-		time.Sleep(time.Millisecond * 60)
+	var loop = true
+	for loop {
+		select {
+		case <-c:
+			fmt.Println("got keyboard interrupt")
+			loop = false
+		default:
+		}
 
 		key := getKey()
 		if key == NO_KEY {
