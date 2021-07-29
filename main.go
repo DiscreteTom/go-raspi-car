@@ -8,7 +8,9 @@ import (
 
 func main() {
 	// init GPIO
-	rpio.Open()
+	if err := rpio.Open(); err != nil {
+		fmt.Println(err)
+	}
 	defer rpio.Close()
 
 	initCar()

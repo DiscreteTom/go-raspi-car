@@ -84,7 +84,7 @@ func readData(command uint8) uint8 {
 		} else {
 			ps2_cmd.Low()
 		}
-		command = command >> 1
+		command >>= 1
 		// and wait for next clock cycle
 		time.Sleep(time.Duration(PS2_CLK_CYCLE) * time.Microsecond)
 
