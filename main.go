@@ -22,13 +22,18 @@ func main() {
 	initCar()
 	initPS2()
 
-	var loop = true
-	for loop {
+	for {
+		time.Sleep(time.Millisecond * 1000)
+
+		var loop = true
 		select {
 		case <-c:
 			fmt.Println("got keyboard interrupt")
 			loop = false
 		default:
+		}
+		if !loop {
+			break
 		}
 
 		key := getKey()
