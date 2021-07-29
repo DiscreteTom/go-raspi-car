@@ -120,7 +120,7 @@ func getKey() PS2_Key {
 	}
 	ps2_sel.High()
 
-	var handKey = (data[4] << 8) | data[3]
+	var handKey = (uint16(data[4]) << 8) | uint16(data[3])
 	for index = 0; index < 16; index++ {
 		if handKey&(1<<(MASK[index]-1)) == 0 {
 			return PS2_Key(index + 1)
