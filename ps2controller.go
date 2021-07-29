@@ -86,12 +86,12 @@ func readData(command uint8) uint8 {
 		}
 		command >>= 1
 		// and wait for next clock cycle
-		time.Sleep(time.Duration(PS2_CLK_CYCLE) * time.Microsecond)
+		time.Sleep(time.Duration(PS2_HALF_CLK_CYCLE) * time.Microsecond)
 
 		// set clk to low, send command byte
 		ps2_clk.Low()
 		// maintain clock for one cycle
-		time.Sleep(time.Duration(PS2_CLK_CYCLE) * time.Microsecond)
+		time.Sleep(time.Duration(PS2_HALF_CLK_CYCLE) * time.Microsecond)
 		// at the end of this cycle, get input data
 		if ps2_dat.Read() == rpio.High {
 			res += j
@@ -101,12 +101,12 @@ func readData(command uint8) uint8 {
 		// reset clk to high
 		ps2_clk.High()
 		// wait for a clock cycle, end this command
-		time.Sleep(time.Duration(PS2_CLK_CYCLE) * time.Microsecond)
+		time.Sleep(time.Duration(PS2_HALF_CLK_CYCLE) * time.Microsecond)
 	}
 
 	// coll down for a while after sending a byte
-	time.Sleep(time.Duration(PS2_WAIT_INTERVAL) * time.Microsecond)
 	ps2_cmd.High()
+	time.Sleep(time.Duration(PS2_WAIT_INTERVAL) * time.Microsecond)
 	return res
 }
 
