@@ -1,6 +1,8 @@
 package main
 
 import (
+	"DiscreteTom/go-raspi-car/internal/pkg/car"
+	ps2 "DiscreteTom/go-raspi-car/internal/pkg/ps2controller"
 	"fmt"
 	"os"
 	"os/signal"
@@ -19,8 +21,8 @@ func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 
-	initCar()
-	initPS2()
+	car.InitCar()
+	ps2.InitPS2()
 
 	for {
 		time.Sleep(time.Millisecond * 1000)
@@ -36,17 +38,17 @@ func main() {
 			break
 		}
 
-		key := getKey()
-		if key == NO_KEY {
-			stop()
-		} else if key == PAD_UP {
-			goForward(50)
-		} else if key == PAD_RIGHT {
-			turnRight(50)
-		} else if key == PAD_DOWN {
-			goBackward(50)
-		} else if key == PAD_LEFT {
-			turnLeft(50)
+		key := ps2.GetKey()
+		if key == ps2.NO_KEY {
+			car.Stop()
+		} else if key == ps2.PAD_UP {
+			car.GoForward(50)
+		} else if key == ps2.PAD_RIGHT {
+			car.TurnRight(50)
+		} else if key == ps2.PAD_DOWN {
+			car.GoBackward(50)
+		} else if key == ps2.PAD_LEFT {
+			car.TurnLeft(50)
 		}
 	}
 }

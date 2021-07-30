@@ -1,6 +1,7 @@
-package main
+package car
 
 import (
+	"DiscreteTom/go-raspi-car/internal/pkg/config"
 	"fmt"
 
 	"github.com/stianeikeland/go-rpio/v4"
@@ -29,28 +30,28 @@ var (
 	b_in_2 rpio.Pin
 )
 
-func initCar() {
-	pwm_a = rpio.Pin(PWM_A_PIN)
+func InitCar() {
+	pwm_a = rpio.Pin(config.PWM_A_PIN)
 	pwm_a.Pwm()
 	pwm_a.Freq(100)
 	pwm_a.DutyCycle(0, 100)
 
-	pwm_b = rpio.Pin(PWM_B_PIN)
+	pwm_b = rpio.Pin(config.PWM_B_PIN)
 	pwm_b.Pwm()
 	pwm_b.Freq(100)
 	pwm_b.DutyCycle(0, 100)
 
-	a_in_1 = rpio.Pin(A_IN_1_PIN)
+	a_in_1 = rpio.Pin(config.A_IN_1_PIN)
 	a_in_1.Output()
-	a_in_2 = rpio.Pin(A_IN_2_PIN)
+	a_in_2 = rpio.Pin(config.A_IN_2_PIN)
 	a_in_2.Output()
-	b_in_1 = rpio.Pin(B_IN_1_PIN)
+	b_in_1 = rpio.Pin(config.B_IN_1_PIN)
 	b_in_1.Output()
-	b_in_2 = rpio.Pin(B_IN_2_PIN)
+	b_in_2 = rpio.Pin(config.B_IN_2_PIN)
 	b_in_2.Output()
 }
 
-func goForward(speed uint32) {
+func GoForward(speed uint32) {
 	if state == GO_FORWARD && currentSpeed == speed {
 		return
 	}
@@ -68,7 +69,7 @@ func goForward(speed uint32) {
 	b_in_1.High()
 }
 
-func stop() {
+func Stop() {
 	if state == STOPPED {
 		return
 	}
@@ -85,7 +86,7 @@ func stop() {
 	b_in_2.Low()
 }
 
-func goBackward(speed uint32) {
+func GoBackward(speed uint32) {
 	if state == GO_BACKWARD && currentSpeed == speed {
 		return
 	}
@@ -103,7 +104,7 @@ func goBackward(speed uint32) {
 	b_in_1.Low()
 }
 
-func turnLeft(speed uint32) {
+func TurnLeft(speed uint32) {
 	if state == TURN_LEFT && currentSpeed == speed {
 		return
 	}
@@ -121,7 +122,7 @@ func turnLeft(speed uint32) {
 	b_in_1.High()
 }
 
-func turnRight(speed uint32) {
+func TurnRight(speed uint32) {
 	if state == TURN_RIGHT && currentSpeed == speed {
 		return
 	}
