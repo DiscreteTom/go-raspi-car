@@ -2,9 +2,11 @@ package ps2
 
 import (
 	"DiscreteTom/go-raspi-car/internal/pkg/config"
+	"fmt"
 	"time"
 
-	"github.com/stianeikeland/go-rpio/v4"
+	"gobot.io/x/gobot"
+	"gobot.io/x/gobot/drivers/gpio"
 )
 
 type PS2_Key uint8
@@ -29,8 +31,7 @@ const (
 	SQUARE
 )
 
-var MASK = [17]PS2_Key{
-	NO_KEY,
+var MASK = [16]PS2_Key{
 	SELECT,
 	L3,
 	R3,
@@ -52,25 +53,37 @@ var MASK = [17]PS2_Key{
 var scan = [9]uint8{0x01, 0x42, 0, 0, 0, 0, 0, 0, 0}
 
 var (
-	ps2_dat rpio.Pin
-	ps2_cmd rpio.Pin
-	ps2_sel rpio.Pin
-	ps2_clk rpio.Pin
+	ps2_dat *gpio.DirectPinDriver
+	ps2_cmd *gpio.DirectPinDriver
+	ps2_sel *gpio.DirectPinDriver
+	ps2_clk *gpio.DirectPinDriver
 )
 
-func InitPS2() {
-	ps2_dat = rpio.Pin(config.PS2_DAT_PIN)
-	ps2_dat.Input()
+const (
+	HIGH byte = 1
+	LOW  byte = 0
+)
 
-	ps2_cmd = rpio.Pin(config.PS2_CMD_PIN)
-	ps2_cmd.Output()
-	ps2_cmd.High()
-	ps2_sel = rpio.Pin(config.PS2_SEL_PIN)
-	ps2_sel.Output()
-	ps2_sel.High()
-	ps2_clk = rpio.Pin(config.PS2_CLK_PIN)
-	ps2_clk.Output()
-	ps2_clk.High()
+func Init(c gobot.Connection) ([]gobot.Device, func()) {
+	ps2_dat = gpio.NewDirectPinDriver(c, config.PS2_DAT_PIN)
+
+	ps2_cmd = gpio.NewDirectPinDriver(c, config.PS2_CMD_PIN)
+	ps2_sel = gpio.NewDirectPinDriver(c, config.PS2_SEL_PIN)
+	ps2_clk = gpio.NewDirectPinDriver(c, config.PS2_CLK_PIN)
+
+	work := func() {
+		if err := ps2_cmd.DigitalWrite(HIGH); err != nil {
+			fmt.Println(err)
+		}
+		if err := ps2_sel.DigitalWrite(HIGH); err != nil {
+			fmt.Println(err)
+		}
+		if err := ps2_clk.DigitalWrite(HIGH); err != nil {
+			fmt.Println(err)
+		}
+	}
+
+	return []gobot.Device{ps2_cmd, ps2_sel, ps2_clk, ps2_dat}, work
 }
 
 func readData(command uint8) uint8 {
@@ -80,34 +93,42 @@ func readData(command uint8) uint8 {
 
 	for i = 0; i < 8; i++ {
 		// send command by bit
-		if command&0x01 == 1 {
-			ps2_cmd.High()
-		} else {
-			ps2_cmd.Low()
+		if err := ps2_cmd.DigitalWrite(command & 0x01); err != nil {
+			fmt.Println(err)
 		}
 		command >>= 1
 		// and wait for next clock cycle
 		time.Sleep(time.Duration(config.PS2_HALF_CLK_CYCLE) * time.Microsecond)
 
 		// set clk to low, send command byte
-		ps2_clk.Low()
+		if err := ps2_clk.DigitalWrite(LOW); err != nil {
+			fmt.Println(err)
+		}
 		// maintain clock for one cycle
 		time.Sleep(time.Duration(config.PS2_HALF_CLK_CYCLE) * time.Microsecond)
 		// at the end of this cycle, get input data
-		if ps2_dat.Read() == rpio.High {
+		bit, err := ps2_dat.DigitalRead()
+		if err != nil {
+			fmt.Println(err)
+		}
+		if bit == 1 {
 			res += j
 		}
 		j <<= 1
 
 		// reset clk to high
-		ps2_clk.High()
+		if err := ps2_clk.DigitalWrite(HIGH); err != nil {
+			fmt.Println(err)
+		}
 		// wait for a clock cycle, end this command
-		time.Sleep(time.Duration(config.PS2_HALF_CLK_CYCLE) * time.Microsecond)
+		// time.Sleep(time.Duration(config.PS2_HALF_CLK_CYCLE) * time.Microsecond)
 	}
 
 	// cool down for a while after sending a byte
-	ps2_cmd.High()
 	time.Sleep(time.Duration(config.PS2_WAIT_INTERVAL) * time.Microsecond)
+	if err := ps2_cmd.DigitalWrite(HIGH); err != nil {
+		fmt.Println(err)
+	}
 	return res
 }
 
@@ -115,15 +136,19 @@ func GetKey() PS2_Key {
 	var index, i uint8
 	var data = [9]uint8{}
 
-	ps2_sel.Low()
+	if err := ps2_sel.DigitalWrite(LOW); err != nil {
+		fmt.Println(err)
+	}
 	for i = 0; i < 9; i++ {
 		data[i] = readData(scan[i])
 	}
-	ps2_sel.High()
+	if err := ps2_sel.DigitalWrite(HIGH); err != nil {
+		fmt.Println(err)
+	}
 
 	var handKey = (uint16(data[4]) << 8) | uint16(data[3])
 	for index = 0; index < 16; index++ {
-		if handKey&(1<<(MASK[index]-1)) == 0 {
+		if (handKey & (1 << (MASK[index] - 1))) == 0 {
 			return PS2_Key(index + 1)
 		}
 	}
