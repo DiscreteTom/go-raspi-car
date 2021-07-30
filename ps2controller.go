@@ -104,7 +104,7 @@ func readData(command uint8) uint8 {
 		time.Sleep(time.Duration(PS2_HALF_CLK_CYCLE) * time.Microsecond)
 	}
 
-	// coll down for a while after sending a byte
+	// cool down for a while after sending a byte
 	ps2_cmd.High()
 	time.Sleep(time.Duration(PS2_WAIT_INTERVAL) * time.Microsecond)
 	return res
