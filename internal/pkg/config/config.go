@@ -17,6 +17,10 @@ const (
 
 	// PS2 controller clock cycle
 	PS2_CLK_CYCLE int = 10 // us
+
+	// car
+	CAR_MOVE_SPEED = 128
+	CAR_TURN_SPEED = 128
 )
 
 // computed

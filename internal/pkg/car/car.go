@@ -19,7 +19,7 @@ const (
 )
 
 var state = STOPPED
-var currentSpeed uint32 = 0
+var currentSpeed byte = 0
 
 var (
 	pwm_a *gpio.DirectPinDriver
@@ -49,7 +49,7 @@ func Init(c gobot.Connection) ([]gobot.Device, func()) {
 	}
 }
 
-func GoForward(speed uint32) {
+func GoForward(speed byte) {
 	if state == GO_FORWARD && currentSpeed == speed {
 		return
 	}
@@ -58,13 +58,13 @@ func GoForward(speed uint32) {
 	currentSpeed = speed
 	fmt.Println("move forward with speed ", speed)
 
-	pwm_a.PwmWrite(100)
-	a_in_2.DigitalWrite(0)
+	pwm_a.PwmWrite(speed)
 	a_in_1.DigitalWrite(1)
+	a_in_2.DigitalWrite(0)
 
-	pwm_b.PwmWrite(100)
-	b_in_2.DigitalWrite(0)
+	pwm_b.PwmWrite(speed)
 	b_in_1.DigitalWrite(1)
+	b_in_2.DigitalWrite(0)
 }
 
 func Stop() {
@@ -84,7 +84,7 @@ func Stop() {
 	b_in_2.DigitalWrite(0)
 }
 
-func GoBackward(speed uint32) {
+func GoBackward(speed byte) {
 	if state == GO_BACKWARD && currentSpeed == speed {
 		return
 	}
@@ -93,16 +93,16 @@ func GoBackward(speed uint32) {
 	currentSpeed = speed
 	fmt.Println("move backward with speed ", speed)
 
-	pwm_a.PwmWrite(100)
-	a_in_2.DigitalWrite(1)
+	pwm_a.PwmWrite(speed)
 	a_in_1.DigitalWrite(0)
+	a_in_2.DigitalWrite(1)
 
-	pwm_b.PwmWrite(100)
-	b_in_2.DigitalWrite(1)
+	pwm_b.PwmWrite(speed)
 	b_in_1.DigitalWrite(0)
+	b_in_2.DigitalWrite(1)
 }
 
-func TurnLeft(speed uint32) {
+func TurnLeft(speed byte) {
 	if state == TURN_LEFT && currentSpeed == speed {
 		return
 	}
@@ -111,16 +111,16 @@ func TurnLeft(speed uint32) {
 	currentSpeed = speed
 	fmt.Println("turn left with speed ", speed)
 
-	pwm_a.PwmWrite(100)
-	a_in_2.DigitalWrite(1)
+	pwm_a.PwmWrite(speed)
 	a_in_1.DigitalWrite(0)
+	a_in_2.DigitalWrite(1)
 
-	pwm_b.PwmWrite(100)
-	b_in_2.DigitalWrite(0)
+	pwm_b.PwmWrite(speed)
 	b_in_1.DigitalWrite(1)
+	b_in_2.DigitalWrite(0)
 }
 
-func TurnRight(speed uint32) {
+func TurnRight(speed byte) {
 	if state == TURN_RIGHT && currentSpeed == speed {
 		return
 	}
@@ -129,11 +129,11 @@ func TurnRight(speed uint32) {
 	currentSpeed = speed
 	fmt.Println("turn right with speed ", speed)
 
-	pwm_a.PwmWrite(100)
-	a_in_2.DigitalWrite(0)
+	pwm_a.PwmWrite(speed)
 	a_in_1.DigitalWrite(1)
+	a_in_2.DigitalWrite(0)
 
-	pwm_b.PwmWrite(100)
-	b_in_2.DigitalWrite(1)
+	pwm_b.PwmWrite(speed)
 	b_in_1.DigitalWrite(0)
+	b_in_2.DigitalWrite(1)
 }

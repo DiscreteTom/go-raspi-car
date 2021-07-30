@@ -2,8 +2,8 @@ package main
 
 import (
 	"DiscreteTom/go-raspi-car/internal/pkg/car"
+	"DiscreteTom/go-raspi-car/internal/pkg/config"
 	ps2 "DiscreteTom/go-raspi-car/internal/pkg/ps2controller"
-	"fmt"
 	"time"
 
 	"gobot.io/x/gobot"
@@ -24,17 +24,16 @@ func main() {
 			time.Sleep(time.Millisecond * 1000)
 
 			key := ps2.GetKey()
-			fmt.Println(key)
 			if key == ps2.NO_KEY {
 				car.Stop()
 			} else if key == ps2.PAD_UP {
-				car.GoForward(50)
+				car.GoForward(config.CAR_MOVE_SPEED)
 			} else if key == ps2.PAD_RIGHT {
-				car.TurnRight(50)
+				car.TurnRight(config.CAR_TURN_SPEED)
 			} else if key == ps2.PAD_DOWN {
-				car.GoBackward(50)
+				car.GoBackward(config.CAR_MOVE_SPEED)
 			} else if key == ps2.PAD_LEFT {
-				car.TurnLeft(50)
+				car.TurnLeft(config.CAR_TURN_SPEED)
 			}
 		}
 	})
