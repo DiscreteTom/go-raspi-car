@@ -28,5 +28,5 @@ func main() {
 		})
 	})
 
-	robot.Start()
+	robot.Start() // run and wait for ctrl-c
 }

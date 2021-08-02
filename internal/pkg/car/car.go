@@ -35,7 +35,7 @@ func Build(c gobot.Connection) ([]gobot.Device, func()) {
 	b_in_1 = gpio.NewDirectPinDriver(c, config.B_IN_1_PIN)
 	b_in_2 = gpio.NewDirectPinDriver(c, config.B_IN_2_PIN)
 
-	carInit := func() {
+	init := func() {
 		// init all pin, set default value
 		pwm_a.PwmWrite(0)
 		pwm_b.PwmWrite(0)
@@ -45,7 +45,7 @@ func Build(c gobot.Connection) ([]gobot.Device, func()) {
 		b_in_2.DigitalWrite(0)
 	}
 
-	return []gobot.Device{pwm_a, pwm_b, a_in_1, a_in_2, b_in_1, b_in_2}, carInit
+	return []gobot.Device{pwm_a, pwm_b, a_in_1, a_in_2, b_in_1, b_in_2}, init
 }
 
 func SetSpeedX(x int16) {
