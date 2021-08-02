@@ -3,6 +3,7 @@ package car
 import (
 	"DiscreteTom/go-raspi-car/internal/pkg/config"
 	"fmt"
+	"sync"
 
 	"gobot.io/x/gobot"
 	"gobot.io/x/gobot/drivers/gpio"
@@ -136,4 +137,63 @@ func TurnRight(speed byte) {
 	pwm_b.PwmWrite(speed)
 	b_in_1.DigitalWrite(0)
 	b_in_2.DigitalWrite(1)
+}
+
+var (
+	speedX int16 = 0
+	speedY int16 = 0
+	mutex  sync.Mutex
+)
+
+func SetSpeedX(x int16) {
+	speedX = x
+	updateSpeed()
+}
+
+func SetSpeedY(y int16) {
+	speedY = y
+	updateSpeed()
+}
+
+func updateSpeed() {
+	// x,y in [-32768, 32767]
+
+	mutex.Lock()
+
+	y := speedY >> 7 // [-256, 255]
+	if y == -256 {
+		y = -255
+	}
+	fmt.Println(y)
+
+	if y < 0 { // move forward
+		PwmMustWrite(pwm_a, (byte(-y)))
+		DigitalMustWrite(a_in_1, 1)
+		DigitalMustWrite(a_in_2, 0)
+
+		PwmMustWrite(pwm_b, (byte(-y)))
+		DigitalMustWrite(b_in_1, 1)
+		DigitalMustWrite(b_in_2, 0)
+	} else { // move backward
+		PwmMustWrite(pwm_a, (byte(y)))
+		DigitalMustWrite(a_in_1, 0)
+		DigitalMustWrite(a_in_2, 1)
+
+		PwmMustWrite(pwm_b, (byte(y)))
+		DigitalMustWrite(b_in_1, 0)
+		DigitalMustWrite(b_in_2, 1)
+	}
+	mutex.Unlock()
+}
+
+func DigitalMustWrite(d *gpio.DirectPinDriver, l byte) {
+	if err := d.DigitalWrite(l); err != nil {
+		fmt.Println(err)
+	}
+}
+
+func PwmMustWrite(d *gpio.DirectPinDriver, l byte) {
+	if err := d.PwmWrite(l); err != nil {
+		fmt.Println(err)
+	}
 }
