@@ -21,12 +21,12 @@ var (
 
 // runtime vars
 var (
-	speedX int16      = 0 // [-32768, 32767]
-	speedY int16      = 0 // [-32768, 32767]
-	mutex  sync.Mutex     // thead lock
+	speedX int16      = 0 // in range [-255, 255]
+	speedY int16      = 0 // in range [-255, 255]
+	mutex  sync.Mutex     // thread lock
 )
 
-func Build(c gobot.Connection) ([]gobot.Device, func()) {
+func Build(c gobot.Connection) []gobot.Device {
 	// construct drivers
 	pwm_a = gpio.NewDirectPinDriver(c, config.PWM_A_PIN)
 	pwm_b = gpio.NewDirectPinDriver(c, config.PWM_B_PIN)
@@ -35,27 +35,37 @@ func Build(c gobot.Connection) ([]gobot.Device, func()) {
 	b_in_1 = gpio.NewDirectPinDriver(c, config.B_IN_1_PIN)
 	b_in_2 = gpio.NewDirectPinDriver(c, config.B_IN_2_PIN)
 
-	init := func() {
-		// init all pin, set default value
-		pwm_a.PwmWrite(0)
-		pwm_b.PwmWrite(0)
-		a_in_1.DigitalWrite(0)
-		a_in_2.DigitalWrite(0)
-		b_in_1.DigitalWrite(0)
-		b_in_2.DigitalWrite(0)
-	}
-
-	return []gobot.Device{pwm_a, pwm_b, a_in_1, a_in_2, b_in_1, b_in_2}, init
+	return []gobot.Device{pwm_a, pwm_b, a_in_1, a_in_2, b_in_1, b_in_2}
 }
 
 func SetSpeedX(x int16) {
-	speedX = x
-	updateSpeed()
+	newX := formatSpeed(x)
+	if newX != speedX {
+		speedX = newX
+		updateSpeed()
+	}
 }
 
 func SetSpeedY(y int16) {
-	speedY = y
-	updateSpeed()
+	newY := formatSpeed(y)
+	if newY != speedY {
+		speedY = newY
+		updateSpeed()
+	}
+}
+
+// change range: [-32768, 32767] => [-255, 255]
+func formatSpeed(s int16) int16 {
+	ret := s >> 7 // change range: [-32768, 32767] => [-256, 255]
+	// avoid overflow
+	if ret == -256 {
+		ret = -255
+	}
+	// remove dithering
+	if ret > -20 && ret < 20 {
+		ret = 0
+	}
+	return ret
 }
 
 func updateSpeed() {
@@ -63,42 +73,34 @@ func updateSpeed() {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	x := speedX >> 7 // [-32768, 32767] => [-256, 255]
-	y := speedY >> 7
-	// ensure x, y in [-255, 255]
-	if y == -256 {
-		y = -255
-	}
-	if x == -256 {
-		x = -255
-	}
+	fmt.Println(speedX, speedY)
 
-	if y < 0 { // move forward
-		PwmMustWrite(pwm_a, byte(-y))
-		DigitalMustWrite(a_in_1, 1)
-		DigitalMustWrite(a_in_2, 0)
+	if speedY < 0 { // move forward
+		pwmMustWrite(pwm_a, byte(-speedY))
+		digitalMustWrite(a_in_1, 1)
+		digitalMustWrite(a_in_2, 0)
 
-		PwmMustWrite(pwm_b, byte(-y))
-		DigitalMustWrite(b_in_1, 1)
-		DigitalMustWrite(b_in_2, 0)
+		pwmMustWrite(pwm_b, byte(-speedY))
+		digitalMustWrite(b_in_1, 1)
+		digitalMustWrite(b_in_2, 0)
 	} else { // move backward
-		PwmMustWrite(pwm_a, byte(y))
-		DigitalMustWrite(a_in_1, 0)
-		DigitalMustWrite(a_in_2, 1)
+		pwmMustWrite(pwm_a, byte(speedY))
+		digitalMustWrite(a_in_1, 0)
+		digitalMustWrite(a_in_2, 1)
 
-		PwmMustWrite(pwm_b, byte(y))
-		DigitalMustWrite(b_in_1, 0)
-		DigitalMustWrite(b_in_2, 1)
+		pwmMustWrite(pwm_b, byte(speedY))
+		digitalMustWrite(b_in_1, 0)
+		digitalMustWrite(b_in_2, 1)
 	}
 }
 
-func DigitalMustWrite(d *gpio.DirectPinDriver, l byte) {
+func digitalMustWrite(d *gpio.DirectPinDriver, l byte) {
 	if err := d.DigitalWrite(l); err != nil {
 		fmt.Println(err)
 	}
 }
 
-func PwmMustWrite(d *gpio.DirectPinDriver, l byte) {
+func pwmMustWrite(d *gpio.DirectPinDriver, l byte) {
 	if err := d.PwmWrite(l); err != nil {
 		fmt.Println(err)
 	}
