@@ -54,12 +54,12 @@ func SetSpeedY(y int16) {
 	}
 }
 
-// change range: [-32768, 32767] => [-255, 255]
+// change range: [-32768, 32767] => [-127, 127]
 func formatSpeed(s int16) int16 {
-	ret := s >> 7 // change range: [-32768, 32767] => [-256, 255]
+	ret := s >> 8 // change range: [-32768, 32767] => [-128, 127]
 	// avoid overflow
-	if ret == -256 {
-		ret = -255
+	if ret == -128 {
+		ret = -127
 	}
 	// remove dithering
 	if ret > -20 && ret < 20 {
@@ -73,30 +73,30 @@ func updateSpeed() {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	if speedY == 0 { // stop
-		pwmMustWrite(pwm_a, 0)
-		digitalMustWrite(a_in_1, 0)
-		digitalMustWrite(a_in_2, 0)
+	leftWheelSpeed := speedY - speedX  // range in [-254, 254]
+	rightWheelSpeed := speedY + speedX //  // range in [-254, 254]
 
-		pwmMustWrite(pwm_b, 0)
-		digitalMustWrite(b_in_1, 0)
-		digitalMustWrite(b_in_2, 0)
-	} else if speedY < 0 { // move forward
-		pwmMustWrite(pwm_a, byte(-speedY))
-		digitalMustWrite(a_in_1, 1)
-		digitalMustWrite(a_in_2, 0)
+	fmt.Println(speedY, speedX)
 
-		pwmMustWrite(pwm_b, byte(-speedY))
-		digitalMustWrite(b_in_1, 1)
-		digitalMustWrite(b_in_2, 0)
+	applyToWheel(pwm_a, a_in_1, a_in_2, leftWheelSpeed)
+	applyToWheel(pwm_b, b_in_1, b_in_2, rightWheelSpeed)
+}
+
+func applyToWheel(pwmPin, in1, in2 *gpio.DirectPinDriver, speed int16) {
+	if speed == 0 { // stop
+		pwmMustWrite(pwmPin, 0)
+		digitalMustWrite(in1, 0)
+		digitalMustWrite(in2, 0)
+	} else if speed < 0 { // move forward
+		pwmMustWrite(pwmPin, byte(-speed))
+		fmt.Println(byte(-speed))
+		digitalMustWrite(in1, 1)
+		digitalMustWrite(in2, 0)
 	} else { // move backward
-		pwmMustWrite(pwm_a, byte(speedY))
-		digitalMustWrite(a_in_1, 0)
-		digitalMustWrite(a_in_2, 1)
-
-		pwmMustWrite(pwm_b, byte(speedY))
-		digitalMustWrite(b_in_1, 0)
-		digitalMustWrite(b_in_2, 1)
+		pwmMustWrite(pwmPin, byte(speed))
+		fmt.Println(byte(speed))
+		digitalMustWrite(in1, 0)
+		digitalMustWrite(in2, 1)
 	}
 }
 
