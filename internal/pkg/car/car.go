@@ -75,7 +75,15 @@ func updateSpeed() {
 
 	fmt.Println(speedX, speedY)
 
-	if speedY < 0 { // move forward
+	if speedY == 0 { // stop
+		pwmMustWrite(pwm_a, 0)
+		digitalMustWrite(a_in_1, 0)
+		digitalMustWrite(a_in_2, 0)
+
+		pwmMustWrite(pwm_b, 0)
+		digitalMustWrite(b_in_1, 0)
+		digitalMustWrite(b_in_2, 0)
+	} else if speedY < 0 { // move forward
 		pwmMustWrite(pwm_a, byte(-speedY))
 		digitalMustWrite(a_in_1, 1)
 		digitalMustWrite(a_in_2, 0)
