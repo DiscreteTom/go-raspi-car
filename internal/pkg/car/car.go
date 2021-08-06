@@ -73,8 +73,6 @@ func updateSpeed() {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	fmt.Println(speedX, speedY)
-
 	if speedY == 0 { // stop
 		pwmMustWrite(pwm_a, 0)
 		digitalMustWrite(a_in_1, 0)
