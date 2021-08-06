@@ -76,8 +76,6 @@ func updateSpeed() {
 	leftWheelSpeed := speedY - speedX  // range in [-254, 254]
 	rightWheelSpeed := speedY + speedX //  // range in [-254, 254]
 
-	fmt.Println(speedY, speedX)
-
 	applyToWheel(pwm_a, a_in_1, a_in_2, leftWheelSpeed)
 	applyToWheel(pwm_b, b_in_1, b_in_2, rightWheelSpeed)
 }
@@ -89,12 +87,10 @@ func applyToWheel(pwmPin, in1, in2 *gpio.DirectPinDriver, speed int16) {
 		digitalMustWrite(in2, 0)
 	} else if speed < 0 { // move forward
 		pwmMustWrite(pwmPin, byte(-speed))
-		fmt.Println(byte(-speed))
 		digitalMustWrite(in1, 1)
 		digitalMustWrite(in2, 0)
 	} else { // move backward
 		pwmMustWrite(pwmPin, byte(speed))
-		fmt.Println(byte(speed))
 		digitalMustWrite(in1, 0)
 		digitalMustWrite(in2, 1)
 	}
