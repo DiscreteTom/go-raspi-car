@@ -17,13 +17,13 @@ func main() {
 	carDevices := car.Build(pi)
 
 	robot := gobot.NewRobot("test", []gobot.Connection{pi, joystickAdaptor}, append(carDevices, stick), func() {
-		stick.On(joystick.LeftX, func(data interface{}) {
-			var value = data.(int16)
-			car.SetSpeedX(value)
-		})
 		stick.On(joystick.LeftY, func(data interface{}) {
 			var value = data.(int16)
 			car.SetSpeedY(value)
+		})
+		stick.On(joystick.RightX, func(data interface{}) {
+			var value = data.(int16)
+			car.SetSpeedX(value)
 		})
 	})
 
