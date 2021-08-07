@@ -1,7 +1,7 @@
 package main
 
 import (
-	"DiscreteTom/go-raspi-car/internal/pkg/car"
+	simpleCar "DiscreteTom/go-raspi-car/internal/pkg/car"
 	"fmt"
 
 	"gobot.io/x/gobot"
@@ -10,13 +10,15 @@ import (
 )
 
 func main() {
+	// platforms
 	joystickAdaptor := joystick.NewAdaptor()
 	pi := raspi.NewAdaptor()
 
+	// drivers & devices
 	stick := joystick.NewDriver(joystickAdaptor, "xbox360")
-	carDevices := car.Build(pi)
+	car := simpleCar.NewCar(pi)
 
-	robot := gobot.NewRobot("test", []gobot.Connection{pi, joystickAdaptor}, append(carDevices, stick), func() {
+	robot := gobot.NewRobot("main", []gobot.Connection{pi, joystickAdaptor}, append(car.Drivers(), stick), func() {
 		stick.On(joystick.LeftY, func(data interface{}) {
 			var value = data.(int16)
 			car.SetSpeedY(value)
