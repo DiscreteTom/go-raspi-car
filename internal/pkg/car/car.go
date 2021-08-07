@@ -11,12 +11,12 @@ import (
 
 type Car struct {
 	// drivers
-	PwmA  *gpio.DirectPinDriver
-	PwmB  *gpio.DirectPinDriver
-	A_In1 *gpio.DirectPinDriver
-	A_In2 *gpio.DirectPinDriver
-	B_In1 *gpio.DirectPinDriver
-	B_In2 *gpio.DirectPinDriver
+	pwmA *gpio.DirectPinDriver
+	pwmB *gpio.DirectPinDriver
+	aIn1 *gpio.DirectPinDriver
+	aIn2 *gpio.DirectPinDriver
+	bIn1 *gpio.DirectPinDriver
+	bIn2 *gpio.DirectPinDriver
 
 	// runtime vars
 	speedX int16      // in range [-255, 255]
@@ -26,12 +26,12 @@ type Car struct {
 
 func NewCar(c gobot.Connection) *Car {
 	return &Car{
-		PwmA:  gpio.NewDirectPinDriver(c, config.PWM_A_PIN),
-		PwmB:  gpio.NewDirectPinDriver(c, config.PWM_B_PIN),
-		A_In1: gpio.NewDirectPinDriver(c, config.A_IN_1_PIN),
-		A_In2: gpio.NewDirectPinDriver(c, config.A_IN_2_PIN),
-		B_In1: gpio.NewDirectPinDriver(c, config.B_IN_1_PIN),
-		B_In2: gpio.NewDirectPinDriver(c, config.B_IN_2_PIN),
+		pwmA: gpio.NewDirectPinDriver(c, config.PWM_A_PIN),
+		pwmB: gpio.NewDirectPinDriver(c, config.PWM_B_PIN),
+		aIn1: gpio.NewDirectPinDriver(c, config.A_IN_1_PIN),
+		aIn2: gpio.NewDirectPinDriver(c, config.A_IN_2_PIN),
+		bIn1: gpio.NewDirectPinDriver(c, config.B_IN_1_PIN),
+		bIn2: gpio.NewDirectPinDriver(c, config.B_IN_2_PIN),
 
 		speedX: 0,
 		speedY: 0,
@@ -39,7 +39,7 @@ func NewCar(c gobot.Connection) *Car {
 }
 
 func (c *Car) Drivers() []gobot.Device {
-	return []gobot.Device{c.PwmA, c.PwmB, c.A_In1, c.A_In2, c.B_In1, c.B_In2}
+	return []gobot.Device{c.pwmA, c.pwmB, c.aIn1, c.aIn2, c.bIn1, c.bIn2}
 }
 
 func (c *Car) SetSpeedX(x int16) {
@@ -80,8 +80,8 @@ func (c *Car) updateSpeed() {
 	leftWheelSpeed := c.speedY - c.speedX  // range in [-254, 254]
 	rightWheelSpeed := c.speedY + c.speedX //  // range in [-254, 254]
 
-	c.applyToWheel(c.PwmA, c.A_In1, c.A_In2, leftWheelSpeed)
-	c.applyToWheel(c.PwmB, c.B_In1, c.B_In2, rightWheelSpeed)
+	c.applyToWheel(c.pwmA, c.aIn1, c.aIn2, leftWheelSpeed)
+	c.applyToWheel(c.pwmB, c.bIn1, c.bIn2, rightWheelSpeed)
 }
 
 func (c *Car) applyToWheel(pwmPin, in1, in2 *gpio.DirectPinDriver, speed int16) {
