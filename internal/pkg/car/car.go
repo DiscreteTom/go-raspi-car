@@ -78,7 +78,7 @@ func (c *Car) updateSpeed() {
 	defer c.mutex.Unlock()
 
 	leftWheelSpeed := c.speedY - c.speedX  // range in [-254, 254]
-	rightWheelSpeed := c.speedY + c.speedX //  // range in [-254, 254]
+	rightWheelSpeed := c.speedY + c.speedX // range in [-254, 254]
 
 	c.applyToWheel(c.pwmA, c.aIn1, c.aIn2, leftWheelSpeed)
 	c.applyToWheel(c.pwmB, c.bIn1, c.bIn2, rightWheelSpeed)
